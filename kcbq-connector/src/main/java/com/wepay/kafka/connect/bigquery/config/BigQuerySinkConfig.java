@@ -112,6 +112,13 @@ public class BigQuerySinkConfig extends AbstractConfig {
   private static final String PROJECT_DOC =
       "The BigQuery project to write to";
 
+  public static final String STAGING_PROJECT_CONFIG =                     "stagingProject";
+  private static final ConfigDef.Type STAGING_PROJECT_TYPE =              ConfigDef.Type.STRING;
+  public static final String STAGING_PROJECT_DEFAULT =                    null;
+  private static final ConfigDef.Importance STAGING_PROJECT_IMPORTANCE =  ConfigDef.Importance.LOW;
+  private static final String STAGING_PROJECT_DOC =
+          "The BigQuery project used for submitting Load Jobs and GCS buckets are created.";
+
   public static final String DEFAULT_DATASET_CONFIG =             "defaultDataset";
   private static final ConfigDef.Type DEFAULT_DATASET_TYPE =       ConfigDef.Type.STRING;
   private static final Object DEFAULT_DATASET_DEFAULT =             ConfigDef.NO_DEFAULT_VALUE;
@@ -590,6 +597,12 @@ public class BigQuerySinkConfig extends AbstractConfig {
             PROJECT_TYPE,
             PROJECT_IMPORTANCE,
             PROJECT_DOC
+        ).define(
+            STAGING_PROJECT_CONFIG,
+            STAGING_PROJECT_TYPE,
+            STAGING_PROJECT_DEFAULT,
+            STAGING_PROJECT_IMPORTANCE,
+            STAGING_PROJECT_DOC
         ).define(
             DEFAULT_DATASET_CONFIG,
             DEFAULT_DATASET_TYPE,

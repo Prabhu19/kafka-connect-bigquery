@@ -179,6 +179,7 @@ public class BigQuerySinkTask extends SinkTask {
 
   private PartitionedTableId getRecordTable(SinkRecord record) {
     String tableName;
+    String projectID = config.getString(BigQuerySinkConfig.PROJECT_CONFIG);
     String dataset = config.getString(BigQuerySinkConfig.DEFAULT_DATASET_CONFIG);
     if (topic2TableMap != null) {
       tableName = topic2TableMap.getOrDefault(record.topic(), record.topic());
@@ -212,7 +213,7 @@ public class BigQuerySinkTask extends SinkTask {
     // we use table name from above to sanitize table name further.
 
 
-    TableId baseTableId = TableId.of(dataset, tableName);
+    TableId baseTableId = TableId.of(projectID, dataset, tableName);
     if (upsertDelete) {
       TableId intermediateTableId = mergeBatches.intermediateTableFor(baseTableId);
       // If upsert/delete is enabled, we want to stream into a non-partitioned intermediate table
@@ -366,8 +367,12 @@ public class BigQuerySinkTask extends SinkTask {
   }
 
   private BigQuery newBigQuery() {
+    String project = config.getString(BigQuerySinkConfig.PROJECT_CONFIG);
+    String stagingProject = config.getString(BigQuerySinkConfig.STAGING_PROJECT_CONFIG);
+
     return new GcpClientBuilder.BigQueryBuilder()
         .withConfig(config)
+        .withProject(stagingProject != null ? stagingProject : project)
         .build();
   }
 
@@ -428,8 +433,12 @@ public class BigQuerySinkTask extends SinkTask {
     if (testGcs != null) {
       return testGcs;
     }
+    String project = config.getString(BigQuerySinkConfig.PROJECT_CONFIG);
+    String stagingProject = config.getString(BigQuerySinkConfig.STAGING_PROJECT_CONFIG);
+
     return new GcpClientBuilder.GcsBuilder()
         .withConfig(config)
+        .withProject(stagingProject != null ? stagingProject : project)
         .build();
   }
 
