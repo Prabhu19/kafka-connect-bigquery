@@ -106,17 +106,17 @@ public class BigQuerySinkConfig extends AbstractConfig {
           "The name of the folder under the bucket in which gcs blobs used to batch load to BigQuery "
                   + "should be located. Only relevant if enableBatchLoad is configured.";
 
-  public static final String PROJECT_CONFIG =                     "project";
+  public static final String PROJECT_CONFIG =                     "destinationProject";
   private static final ConfigDef.Type PROJECT_TYPE =              ConfigDef.Type.STRING;
   private static final ConfigDef.Importance PROJECT_IMPORTANCE =  ConfigDef.Importance.HIGH;
   private static final String PROJECT_DOC =
       "The BigQuery project to write to";
 
-  public static final String STAGING_PROJECT_CONFIG =                     "stagingProject";
-  private static final ConfigDef.Type STAGING_PROJECT_TYPE =              ConfigDef.Type.STRING;
-  public static final String STAGING_PROJECT_DEFAULT =                    null;
-  private static final ConfigDef.Importance STAGING_PROJECT_IMPORTANCE =  ConfigDef.Importance.LOW;
-  private static final String STAGING_PROJECT_DOC =
+  public static final String INTERIM_PROJECT_CONFIG =                     "interimProject";
+  private static final ConfigDef.Type INTERIM_PROJECT_TYPE =              ConfigDef.Type.STRING;
+  public static final String INTERIM_PROJECT_DEFAULT =                    null;
+  private static final ConfigDef.Importance INTERIM_PROJECT_IMPORTANCE =  ConfigDef.Importance.LOW;
+  private static final String INTERIM_PROJECT_DOC =
           "The BigQuery project used for submitting Load Jobs and GCS buckets are created.";
 
   public static final String DEFAULT_DATASET_CONFIG =             "defaultDataset";
@@ -598,11 +598,11 @@ public class BigQuerySinkConfig extends AbstractConfig {
             PROJECT_IMPORTANCE,
             PROJECT_DOC
         ).define(
-            STAGING_PROJECT_CONFIG,
-            STAGING_PROJECT_TYPE,
-            STAGING_PROJECT_DEFAULT,
-            STAGING_PROJECT_IMPORTANCE,
-            STAGING_PROJECT_DOC
+            INTERIM_PROJECT_CONFIG,
+            INTERIM_PROJECT_TYPE,
+            INTERIM_PROJECT_DEFAULT,
+            INTERIM_PROJECT_IMPORTANCE,
+            INTERIM_PROJECT_DOC
         ).define(
             DEFAULT_DATASET_CONFIG,
             DEFAULT_DATASET_TYPE,

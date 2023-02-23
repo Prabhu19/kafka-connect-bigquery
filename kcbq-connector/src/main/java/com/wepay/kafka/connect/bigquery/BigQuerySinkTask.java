@@ -368,11 +368,11 @@ public class BigQuerySinkTask extends SinkTask {
 
   private BigQuery newBigQuery() {
     String project = config.getString(BigQuerySinkConfig.PROJECT_CONFIG);
-    String stagingProject = config.getString(BigQuerySinkConfig.STAGING_PROJECT_CONFIG);
+    String interimProject = config.getString(BigQuerySinkConfig.INTERIM_PROJECT_CONFIG);
 
     return new GcpClientBuilder.BigQueryBuilder()
         .withConfig(config)
-        .withProject(stagingProject != null ? stagingProject : project)
+        .withProject(interimProject != null ? interimProject : project)
         .build();
   }
 
@@ -434,11 +434,11 @@ public class BigQuerySinkTask extends SinkTask {
       return testGcs;
     }
     String project = config.getString(BigQuerySinkConfig.PROJECT_CONFIG);
-    String stagingProject = config.getString(BigQuerySinkConfig.STAGING_PROJECT_CONFIG);
+    String interimProject = config.getString(BigQuerySinkConfig.INTERIM_PROJECT_CONFIG);
 
     return new GcpClientBuilder.GcsBuilder()
         .withConfig(config)
-        .withProject(stagingProject != null ? stagingProject : project)
+        .withProject(interimProject != null ? interimProject : project)
         .build();
   }
 
