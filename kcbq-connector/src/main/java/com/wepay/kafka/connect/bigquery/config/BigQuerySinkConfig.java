@@ -120,10 +120,10 @@ public class BigQuerySinkConfig extends AbstractConfig {
           "The BigQuery project where GCS buckets are created.";
 
   public static final String BQ_LOAD_JOB_PROJECT_CONFIG =                "bqLoadJobProject";
-  private static final ConfigDef.Type BQ_LOAD_PROJECT_TYPE =             ConfigDef.Type.STRING;
-  public static final String BQ_LOAD_PROJECT_DEFAULT =                   null;
-  private static final ConfigDef.Importance BQ_LOAD_PROJECT_IMPORTANCE = ConfigDef.Importance.LOW;
-  private static final String BQ_LOAD_PROJECT_DOC =
+  private static final ConfigDef.Type BQ_LOAD_JOB_PROJECT_TYPE =             ConfigDef.Type.STRING;
+  public static final String BQ_LOAD_JOB_PROJECT_DEFAULT =                   null;
+  private static final ConfigDef.Importance BQ_LOAD_JOB_PROJECT_IMPORTANCE = ConfigDef.Importance.LOW;
+  private static final String BQ_LOAD_JOB_PROJECT_DOC =
           "The BigQuery project where BQ load jobs are to be submitted.";
 
   public static final String DEFAULT_DATASET_CONFIG =             "defaultDataset";
@@ -612,10 +612,10 @@ public class BigQuerySinkConfig extends AbstractConfig {
             GCS_PROJECT_DOC
         ).define(
             BQ_LOAD_JOB_PROJECT_CONFIG,
-            BQ_LOAD_PROJECT_TYPE,
-            BQ_LOAD_PROJECT_DEFAULT,
-            BQ_LOAD_PROJECT_IMPORTANCE,
-            BQ_LOAD_PROJECT_DOC
+            BQ_LOAD_JOB_PROJECT_TYPE,
+            BQ_LOAD_JOB_PROJECT_DEFAULT,
+            BQ_LOAD_JOB_PROJECT_IMPORTANCE,
+            BQ_LOAD_JOB_PROJECT_DOC
         ).define(
             DEFAULT_DATASET_CONFIG,
             DEFAULT_DATASET_TYPE,
