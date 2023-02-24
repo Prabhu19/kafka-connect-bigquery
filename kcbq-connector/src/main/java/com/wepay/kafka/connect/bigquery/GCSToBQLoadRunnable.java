@@ -256,7 +256,7 @@ public class GCSToBQLoadRunnable implements Runnable {
           jobIterator.remove();
           logger.trace("Job is removed from iterator: {}", job.getJobId());
           successCount++;
-          claimedBlobIds.removeAll(blobIdsToDelete);
+          blobIdsToDelete.forEach(claimedBlobIds::remove);
           logger.trace("Completed blobs have been removed from claimed set: {}", blobIdsToDelete);
           deletableBlobIds.addAll(blobIdsToDelete);
           logger.trace("Completed blobs marked as deletable: {}", blobIdsToDelete);
@@ -277,7 +277,7 @@ public class GCSToBQLoadRunnable implements Runnable {
         List<BlobId> blobIds = activeJobs.get(job);
         jobIterator.remove();
         // unclaim blobs
-        claimedBlobIds.removeAll(blobIds);
+        blobIds.forEach(claimedBlobIds::remove);
         failureCount++;
 
         // throw exception if failures exceeded tolerable limit.
