@@ -24,6 +24,7 @@ import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.FormatOptions;
 import com.google.cloud.bigquery.Job;
+import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.LoadJobConfiguration;
 import com.google.cloud.bigquery.TableId;
@@ -244,8 +245,8 @@ public class GCSToBQLoadRunnable implements Runnable {
 
     while (jobIterator.hasNext()) {
       Map.Entry<Job, List<BlobId>> jobEntry = jobIterator.next();
-      Job jobOldState = jobEntry.getKey();
-      Job job = jobOldState.getBigQuery().getJob(jobOldState.getJobId(), BigQuery.JobOption.fields(BigQuery.JobField.STATUS));
+      JobId jobID = jobEntry.getKey().getJobId();
+      Job job = bigQuery.getJob(jobID);
       logger.debug("Checking next job: {}", job.getJobId());
 
       try {
