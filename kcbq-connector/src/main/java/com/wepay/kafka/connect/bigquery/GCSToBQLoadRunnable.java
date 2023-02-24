@@ -248,7 +248,7 @@ public class GCSToBQLoadRunnable implements Runnable {
       logger.debug("Checking next job: {}", job.getJobId());
 
       try {
-        if (job.isDone() && job.getStatus().getError() != null ) {
+        if (job.isDone() && job.getStatus().getError() == null ) {
           logger.trace("Job is marked done: id={}, status={}", job.getJobId(), job.getStatus());
           List<BlobId> blobIdsToDelete = jobEntry.getValue();
           jobIterator.remove();
