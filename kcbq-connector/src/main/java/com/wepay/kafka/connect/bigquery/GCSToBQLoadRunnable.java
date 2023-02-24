@@ -199,10 +199,12 @@ public class GCSToBQLoadRunnable implements Runnable {
                              .collect(Collectors.toList());
 
     boolean allowNewBQFields = config.getBoolean(BigQuerySinkConfig.ALLOW_NEW_BIGQUERY_FIELDS_CONFIG);
+    boolean autoDetectSchema = false;
     List<JobInfo.SchemaUpdateOption> schemaUpdateOptions = new ArrayList<>();
     if (allowNewBQFields) {
       schemaUpdateOptions.add(JobInfo.SchemaUpdateOption.ALLOW_FIELD_ADDITION);
       schemaUpdateOptions.add(JobInfo.SchemaUpdateOption.ALLOW_FIELD_RELAXATION);
+      autoDetectSchema = true;
     }
 
     // create job load configuration
@@ -211,6 +213,7 @@ public class GCSToBQLoadRunnable implements Runnable {
             .setFormatOptions(FormatOptions.json())
             .setCreateDisposition(JobInfo.CreateDisposition.CREATE_IF_NEEDED)
             .setSchemaUpdateOptions(schemaUpdateOptions)
+            .setAutodetect(autoDetectSchema)
             .setWriteDisposition(JobInfo.WriteDisposition.WRITE_APPEND)
             .build();
     // create and return the job.
