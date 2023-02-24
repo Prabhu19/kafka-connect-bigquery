@@ -33,6 +33,7 @@ import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 
+import com.google.common.collect.ImmutableList;
 import com.wepay.kafka.connect.bigquery.config.BigQuerySinkConfig;
 import com.wepay.kafka.connect.bigquery.write.row.GCSToBQWriter;
 
@@ -199,12 +200,10 @@ public class GCSToBQLoadRunnable implements Runnable {
                              .collect(Collectors.toList());
 
     boolean allowNewBQFields = config.getBoolean(BigQuerySinkConfig.ALLOW_NEW_BIGQUERY_FIELDS_CONFIG);
-    boolean autoDetectSchema = false;
     List<JobInfo.SchemaUpdateOption> schemaUpdateOptions = new ArrayList<>();
     if (allowNewBQFields) {
       schemaUpdateOptions.add(JobInfo.SchemaUpdateOption.ALLOW_FIELD_ADDITION);
       schemaUpdateOptions.add(JobInfo.SchemaUpdateOption.ALLOW_FIELD_RELAXATION);
-      autoDetectSchema = true;
     }
 
     // create job load configuration
@@ -213,7 +212,6 @@ public class GCSToBQLoadRunnable implements Runnable {
             .setFormatOptions(FormatOptions.json())
             .setCreateDisposition(JobInfo.CreateDisposition.CREATE_IF_NEEDED)
             .setSchemaUpdateOptions(schemaUpdateOptions)
-            .setAutodetect(autoDetectSchema)
             .setWriteDisposition(JobInfo.WriteDisposition.WRITE_APPEND)
             .build();
     // create and return the job.
@@ -249,7 +247,7 @@ public class GCSToBQLoadRunnable implements Runnable {
       logger.debug("Checking next job: {}", job.getJobId());
 
       try {
-        if (job.isDone()) {
+        if (job.isDone() && job.getStatus().getError() != null ) {
           logger.trace("Job is marked done: id={}, status={}", job.getJobId(), job.getStatus());
           List<BlobId> blobIdsToDelete = jobEntry.getValue();
           jobIterator.remove();
@@ -260,6 +258,15 @@ public class GCSToBQLoadRunnable implements Runnable {
           deletableBlobIds.addAll(blobIdsToDelete);
           logger.trace("Completed blobs marked as deletable: {}", blobIdsToDelete);
         }
+
+        if (job.getStatus().getError() != null || job.getStatus().getExecutionErrors().size() > 0 ) {
+          logger.warn("BigQuery Load Job failed JobId={} ErrorMessage={}",
+                  job.getJobId(), job.getStatus().getError().toString());
+
+          throw new BigQueryException(job.getStatus().getExecutionErrors() == null ?
+                  ImmutableList.of(job.getStatus().getError()) : ImmutableList.copyOf(job.getStatus().getExecutionErrors()));
+        }
+
       } catch (BigQueryException ex) {
         // log a message.
         logger.warn("GCS to BQ load job failed", ex);
