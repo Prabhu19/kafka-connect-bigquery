@@ -240,6 +240,7 @@ public class GCSToBQLoadRunnable implements Runnable {
     Iterator<Map.Entry<Job, List<BlobId>>> jobIterator = activeJobs.entrySet().iterator();
     int successCount = 0;
     int failureCount = 0;
+    int maxFailureCount = config.getInt(BigQuerySinkConfig.BATCH_LOAD_MAX_FAILURES_CONFIG);
 
     while (jobIterator.hasNext()) {
       Map.Entry<Job, List<BlobId>> jobEntry = jobIterator.next();
@@ -276,6 +277,11 @@ public class GCSToBQLoadRunnable implements Runnable {
         // unclaim blobs
         claimedBlobIds.removeAll(blobIds);
         failureCount++;
+
+        // throw exception if failures exceeded tolerable limit.
+        if (failureCount > maxFailureCount) {
+          throw ex;
+        }
       } finally {
         logger.info("GCS To BQ job tally: {} successful jobs, {} failed jobs.",
                     successCount, failureCount);

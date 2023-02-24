@@ -90,6 +90,14 @@ public class BigQuerySinkConfig extends AbstractConfig {
       "The interval, in seconds, in which to attempt to run GCS to BQ load jobs. Only relevant "
       + "if enableBatchLoad is configured.";
 
+  public static final String BATCH_LOAD_MAX_FAILURES_CONFIG =             "batchLoadMaxFailures";
+  private static final ConfigDef.Type BATCH_LOAD_MAX_FAILURES_TYPE =      ConfigDef.Type.INT;
+  private static final Integer BATCH_LOAD_MAX_FAILURES_DEFAULT =          0;
+  private static final ConfigDef.Importance BATCH_LOAD_MAX_FAILURES_IMPORTANCE =
+          ConfigDef.Importance.LOW;
+  private static final String BATCH_LOAD_MAX_FAILURES_DOC =
+          "Max number of active BigQuery load jobs which can fail";
+
   public static final String GCS_BUCKET_NAME_CONFIG =                     "gcsBucketName";
   private static final ConfigDef.Type GCS_BUCKET_NAME_TYPE =              ConfigDef.Type.STRING;
   private static final Object GCS_BUCKET_NAME_DEFAULT =                   "";
@@ -587,6 +595,12 @@ public class BigQuerySinkConfig extends AbstractConfig {
             BATCH_LOAD_INTERVAL_SEC_DEFAULT,
             BATCH_LOAD_INTERVAL_SEC_IMPORTANCE,
             BATCH_LOAD_INTERVAL_SEC_DOC
+        ).define(
+            BATCH_LOAD_MAX_FAILURES_CONFIG,
+            BATCH_LOAD_MAX_FAILURES_TYPE,
+            BATCH_LOAD_MAX_FAILURES_DEFAULT,
+            BATCH_LOAD_MAX_FAILURES_IMPORTANCE,
+            BATCH_LOAD_MAX_FAILURES_DOC
         ).define(
             GCS_BUCKET_NAME_CONFIG,
             GCS_BUCKET_NAME_TYPE,
