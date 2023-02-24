@@ -244,7 +244,8 @@ public class GCSToBQLoadRunnable implements Runnable {
 
     while (jobIterator.hasNext()) {
       Map.Entry<Job, List<BlobId>> jobEntry = jobIterator.next();
-      Job job = jobEntry.getKey();
+      Job jobOldState = jobEntry.getKey();
+      Job job = jobOldState.getBigQuery().getJob(jobOldState.getJobId(), BigQuery.JobOption.fields(BigQuery.JobField.STATUS));
       logger.debug("Checking next job: {}", job.getJobId());
 
       try {
