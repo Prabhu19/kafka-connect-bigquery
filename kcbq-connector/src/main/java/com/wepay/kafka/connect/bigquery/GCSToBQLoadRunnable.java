@@ -352,7 +352,6 @@ public class GCSToBQLoadRunnable implements Runnable {
       logger.trace("Finished BQ load run");
     } catch (Exception e) {
       logger.error("Uncaught error in BQ loader", e);
-      throw e;
     }
   }
 }
