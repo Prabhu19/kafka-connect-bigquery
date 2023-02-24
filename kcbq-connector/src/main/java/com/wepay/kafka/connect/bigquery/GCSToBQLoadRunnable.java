@@ -260,7 +260,7 @@ public class GCSToBQLoadRunnable implements Runnable {
           logger.trace("Completed blobs marked as deletable: {}", blobIdsToDelete);
         }
 
-        if (job.getStatus().getError() != null || job.getStatus().getExecutionErrors().size() > 0 ) {
+        if (job.getStatus().getError() != null ) {
           logger.warn("BigQuery Load Job failed JobId={} ErrorMessage={}",
                   job.getJobId(), job.getStatus().getError().toString());
 
