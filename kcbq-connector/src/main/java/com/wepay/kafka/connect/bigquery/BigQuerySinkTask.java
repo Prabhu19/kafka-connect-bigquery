@@ -368,11 +368,11 @@ public class BigQuerySinkTask extends SinkTask {
 
   private BigQuery newBigQuery() {
     String project = config.getString(BigQuerySinkConfig.PROJECT_CONFIG);
-    String interimProject = config.getString(BigQuerySinkConfig.INTERIM_PROJECT_CONFIG);
+    String bqLoadJobProject = config.getString(BigQuerySinkConfig.BQ_LOAD_JOB_PROJECT_CONFIG);
 
     return new GcpClientBuilder.BigQueryBuilder()
         .withConfig(config)
-        .withProject(interimProject != null ? interimProject : project)
+        .withProject(bqLoadJobProject != null ? bqLoadJobProject : project)
         .build();
   }
 
@@ -434,11 +434,11 @@ public class BigQuerySinkTask extends SinkTask {
       return testGcs;
     }
     String project = config.getString(BigQuerySinkConfig.PROJECT_CONFIG);
-    String interimProject = config.getString(BigQuerySinkConfig.INTERIM_PROJECT_CONFIG);
+    String gcsProject = config.getString(BigQuerySinkConfig.GCS_PROJECT_CONFIG);
 
     return new GcpClientBuilder.GcsBuilder()
         .withConfig(config)
-        .withProject(interimProject != null ? interimProject : project)
+        .withProject(gcsProject != null ? gcsProject : project)
         .build();
   }
 
@@ -536,7 +536,7 @@ public class BigQuerySinkTask extends SinkTask {
         ));
       }
     }
-    GCSToBQLoadRunnable loadRunnable = new GCSToBQLoadRunnable(getBigQuery(), bucket);
+    GCSToBQLoadRunnable loadRunnable = new GCSToBQLoadRunnable(getBigQuery(), bucket, config);
 
     int intervalSec = config.getInt(BigQuerySinkConfig.BATCH_LOAD_INTERVAL_SEC_CONFIG);
     loadExecutor.scheduleAtFixedRate(loadRunnable, intervalSec, intervalSec, TimeUnit.SECONDS);

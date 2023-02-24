@@ -112,12 +112,19 @@ public class BigQuerySinkConfig extends AbstractConfig {
   private static final String PROJECT_DOC =
       "The BigQuery project to write to";
 
-  public static final String INTERIM_PROJECT_CONFIG =                     "interimProject";
-  private static final ConfigDef.Type INTERIM_PROJECT_TYPE =              ConfigDef.Type.STRING;
-  public static final String INTERIM_PROJECT_DEFAULT =                    null;
-  private static final ConfigDef.Importance INTERIM_PROJECT_IMPORTANCE =  ConfigDef.Importance.LOW;
-  private static final String INTERIM_PROJECT_DOC =
-          "The BigQuery project used for submitting Load Jobs and GCS buckets are created.";
+  public static final String GCS_PROJECT_CONFIG =                     "gcsProject";
+  private static final ConfigDef.Type GCS_PROJECT_TYPE =              ConfigDef.Type.STRING;
+  public static final String GCS_PROJECT_DEFAULT =                    null;
+  private static final ConfigDef.Importance GCS_PROJECT_IMPORTANCE =  ConfigDef.Importance.LOW;
+  private static final String GCS_PROJECT_DOC =
+          "The BigQuery project where GCS buckets are created.";
+
+  public static final String BQ_LOAD_JOB_PROJECT_CONFIG =                "bqLoadJobProject";
+  private static final ConfigDef.Type BQ_LOAD_PROJECT_TYPE =             ConfigDef.Type.STRING;
+  public static final String BQ_LOAD_PROJECT_DEFAULT =                   null;
+  private static final ConfigDef.Importance BQ_LOAD_PROJECT_IMPORTANCE = ConfigDef.Importance.LOW;
+  private static final String BQ_LOAD_PROJECT_DOC =
+          "The BigQuery project where BQ load jobs are to be submitted.";
 
   public static final String DEFAULT_DATASET_CONFIG =             "defaultDataset";
   private static final ConfigDef.Type DEFAULT_DATASET_TYPE =       ConfigDef.Type.STRING;
@@ -598,11 +605,17 @@ public class BigQuerySinkConfig extends AbstractConfig {
             PROJECT_IMPORTANCE,
             PROJECT_DOC
         ).define(
-            INTERIM_PROJECT_CONFIG,
-            INTERIM_PROJECT_TYPE,
-            INTERIM_PROJECT_DEFAULT,
-            INTERIM_PROJECT_IMPORTANCE,
-            INTERIM_PROJECT_DOC
+            GCS_PROJECT_CONFIG,
+            GCS_PROJECT_TYPE,
+            GCS_PROJECT_DEFAULT,
+            GCS_PROJECT_IMPORTANCE,
+            GCS_PROJECT_DOC
+        ).define(
+            BQ_LOAD_JOB_PROJECT_CONFIG,
+            BQ_LOAD_PROJECT_TYPE,
+            BQ_LOAD_PROJECT_DEFAULT,
+            BQ_LOAD_PROJECT_IMPORTANCE,
+            BQ_LOAD_PROJECT_DOC
         ).define(
             DEFAULT_DATASET_CONFIG,
             DEFAULT_DATASET_TYPE,

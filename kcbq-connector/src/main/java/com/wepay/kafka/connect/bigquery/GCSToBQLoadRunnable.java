@@ -30,8 +30,10 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 
+import com.wepay.kafka.connect.bigquery.config.BigQuerySinkConfig;
 import com.wepay.kafka.connect.bigquery.write.row.GCSToBQWriter;
 
 import org.slf4j.Logger;
@@ -60,6 +62,7 @@ public class GCSToBQLoadRunnable implements Runnable {
 
   private final BigQuery bigQuery;
   private final Bucket bucket;
+  private final BigQuerySinkConfig config;
   private final Map<Job, List<BlobId>> activeJobs;
   private final Set<BlobId> claimedBlobIds;
   private final Set<BlobId> deletableBlobIds;
@@ -81,9 +84,10 @@ public class GCSToBQLoadRunnable implements Runnable {
    * @param bigQuery the {@link BigQuery} instance.
    * @param bucket the the GCS bucket to read from.
    */
-  public GCSToBQLoadRunnable(BigQuery bigQuery, Bucket bucket) {
+  public GCSToBQLoadRunnable(BigQuery bigQuery, Bucket bucket, BigQuerySinkConfig config) {
     this.bigQuery = bigQuery;
     this.bucket = bucket;
+    this.config = config;
     this.activeJobs = new HashMap<>();
     this.claimedBlobIds = new HashSet<>();
     this.deletableBlobIds = new HashSet<>();
@@ -103,7 +107,7 @@ public class GCSToBQLoadRunnable implements Runnable {
     Map<TableId, Long> tableToCurrentLoadSize = new HashMap<>();
 
     logger.trace("Starting GCS bucket list");
-    Page<Blob> list = bucket.list();
+    Page<Blob> list = bucket.list(Storage.BlobListOption.prefix(config.getString(BigQuerySinkConfig.GCS_FOLDER_NAME_CONFIG)));
     logger.trace("Finished GCS bucket list");
 
     for (Blob blob : list.iterateAll()) {
@@ -193,11 +197,20 @@ public class GCSToBQLoadRunnable implements Runnable {
                                                      bucket.getName(),
                                                      b.getName()))
                              .collect(Collectors.toList());
+
+    boolean allowNewBQFields = config.getBoolean(BigQuerySinkConfig.ALLOW_NEW_BIGQUERY_FIELDS_CONFIG);
+    List<JobInfo.SchemaUpdateOption> schemaUpdateOptions = new ArrayList<>();
+    if (allowNewBQFields) {
+      schemaUpdateOptions.add(JobInfo.SchemaUpdateOption.ALLOW_FIELD_ADDITION);
+      schemaUpdateOptions.add(JobInfo.SchemaUpdateOption.ALLOW_FIELD_RELAXATION);
+    }
+
     // create job load configuration
     LoadJobConfiguration loadJobConfiguration =
         LoadJobConfiguration.newBuilder(table, uris)
             .setFormatOptions(FormatOptions.json())
             .setCreateDisposition(JobInfo.CreateDisposition.CREATE_IF_NEEDED)
+            .setSchemaUpdateOptions(schemaUpdateOptions)
             .setWriteDisposition(JobInfo.WriteDisposition.WRITE_APPEND)
             .build();
     // create and return the job.
