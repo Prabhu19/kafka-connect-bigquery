@@ -106,7 +106,7 @@ public class BigQuerySinkConfig extends AbstractConfig {
           "The name of the folder under the bucket in which gcs blobs used to batch load to BigQuery "
                   + "should be located. Only relevant if enableBatchLoad is configured.";
 
-  public static final String PROJECT_CONFIG =                     "destinationProject";
+  public static final String PROJECT_CONFIG =                     "project";
   private static final ConfigDef.Type PROJECT_TYPE =              ConfigDef.Type.STRING;
   private static final ConfigDef.Importance PROJECT_IMPORTANCE =  ConfigDef.Importance.HIGH;
   private static final String PROJECT_DOC =
