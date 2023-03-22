@@ -24,14 +24,18 @@ import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.FormatOptions;
 import com.google.cloud.bigquery.Job;
+import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.LoadJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 
+import com.google.common.collect.ImmutableList;
+import com.wepay.kafka.connect.bigquery.config.BigQuerySinkConfig;
 import com.wepay.kafka.connect.bigquery.write.row.GCSToBQWriter;
 
 import org.slf4j.Logger;
@@ -60,6 +64,7 @@ public class GCSToBQLoadRunnable implements Runnable {
 
   private final BigQuery bigQuery;
   private final Bucket bucket;
+  private final BigQuerySinkConfig config;
   private final Map<Job, List<BlobId>> activeJobs;
   private final Set<BlobId> claimedBlobIds;
   private final Set<BlobId> deletableBlobIds;
@@ -81,9 +86,10 @@ public class GCSToBQLoadRunnable implements Runnable {
    * @param bigQuery the {@link BigQuery} instance.
    * @param bucket the the GCS bucket to read from.
    */
-  public GCSToBQLoadRunnable(BigQuery bigQuery, Bucket bucket) {
+  public GCSToBQLoadRunnable(BigQuery bigQuery, Bucket bucket, BigQuerySinkConfig config) {
     this.bigQuery = bigQuery;
     this.bucket = bucket;
+    this.config = config;
     this.activeJobs = new HashMap<>();
     this.claimedBlobIds = new HashSet<>();
     this.deletableBlobIds = new HashSet<>();
@@ -103,7 +109,7 @@ public class GCSToBQLoadRunnable implements Runnable {
     Map<TableId, Long> tableToCurrentLoadSize = new HashMap<>();
 
     logger.trace("Starting GCS bucket list");
-    Page<Blob> list = bucket.list();
+    Page<Blob> list = bucket.list(Storage.BlobListOption.prefix(config.getString(BigQuerySinkConfig.GCS_FOLDER_NAME_CONFIG)));
     logger.trace("Finished GCS bucket list");
 
     for (Blob blob : list.iterateAll()) {
@@ -193,11 +199,20 @@ public class GCSToBQLoadRunnable implements Runnable {
                                                      bucket.getName(),
                                                      b.getName()))
                              .collect(Collectors.toList());
+
+    boolean allowNewBQFields = config.getBoolean(BigQuerySinkConfig.ALLOW_NEW_BIGQUERY_FIELDS_CONFIG);
+    List<JobInfo.SchemaUpdateOption> schemaUpdateOptions = new ArrayList<>();
+    if (allowNewBQFields) {
+      schemaUpdateOptions.add(JobInfo.SchemaUpdateOption.ALLOW_FIELD_ADDITION);
+      schemaUpdateOptions.add(JobInfo.SchemaUpdateOption.ALLOW_FIELD_RELAXATION);
+    }
+
     // create job load configuration
     LoadJobConfiguration loadJobConfiguration =
         LoadJobConfiguration.newBuilder(table, uris)
             .setFormatOptions(FormatOptions.json())
             .setCreateDisposition(JobInfo.CreateDisposition.CREATE_IF_NEEDED)
+            .setSchemaUpdateOptions(schemaUpdateOptions)
             .setWriteDisposition(JobInfo.WriteDisposition.WRITE_APPEND)
             .build();
     // create and return the job.
@@ -226,14 +241,16 @@ public class GCSToBQLoadRunnable implements Runnable {
     Iterator<Map.Entry<Job, List<BlobId>>> jobIterator = activeJobs.entrySet().iterator();
     int successCount = 0;
     int failureCount = 0;
+    int maxFailureCount = config.getInt(BigQuerySinkConfig.BATCH_LOAD_MAX_FAILURES_CONFIG);
 
     while (jobIterator.hasNext()) {
       Map.Entry<Job, List<BlobId>> jobEntry = jobIterator.next();
-      Job job = jobEntry.getKey();
+      JobId jobID = jobEntry.getKey().getJobId();
+      Job job = bigQuery.getJob(jobID);
       logger.debug("Checking next job: {}", job.getJobId());
 
       try {
-        if (job.isDone()) {
+        if (job.isDone() && job.getStatus().getError() == null ) {
           logger.trace("Job is marked done: id={}, status={}", job.getJobId(), job.getStatus());
           List<BlobId> blobIdsToDelete = jobEntry.getValue();
           jobIterator.remove();
@@ -244,15 +261,29 @@ public class GCSToBQLoadRunnable implements Runnable {
           deletableBlobIds.addAll(blobIdsToDelete);
           logger.trace("Completed blobs marked as deletable: {}", blobIdsToDelete);
         }
+
+        if (job.getStatus().getError() != null ) {
+          logger.warn("BigQuery Load Job failed JobId={} ErrorMessage={}",
+                  job.getJobId(), job.getStatus().getError().toString());
+
+          throw new BigQueryException(job.getStatus().getExecutionErrors() == null ?
+                  ImmutableList.of(job.getStatus().getError()) : ImmutableList.copyOf(job.getStatus().getExecutionErrors()));
+        }
+
       } catch (BigQueryException ex) {
         // log a message.
         logger.warn("GCS to BQ load job failed", ex);
         // remove job from active jobs (it's not active anymore)
-        List<BlobId> blobIds = activeJobs.get(job);
+        List<BlobId> blobIds = jobEntry.getValue();
         jobIterator.remove();
         // unclaim blobs
         claimedBlobIds.removeAll(blobIds);
         failureCount++;
+
+        // throw exception if failures exceeded tolerable limit.
+        if (failureCount > maxFailureCount) {
+          throw ex;
+        }
       } finally {
         logger.info("GCS To BQ job tally: {} successful jobs, {} failed jobs.",
                     successCount, failureCount);

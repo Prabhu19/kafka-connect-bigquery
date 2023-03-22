@@ -90,6 +90,14 @@ public class BigQuerySinkConfig extends AbstractConfig {
       "The interval, in seconds, in which to attempt to run GCS to BQ load jobs. Only relevant "
       + "if enableBatchLoad is configured.";
 
+  public static final String BATCH_LOAD_MAX_FAILURES_CONFIG =             "batchLoadMaxFailures";
+  private static final ConfigDef.Type BATCH_LOAD_MAX_FAILURES_TYPE =      ConfigDef.Type.INT;
+  private static final Integer BATCH_LOAD_MAX_FAILURES_DEFAULT =          0;
+  private static final ConfigDef.Importance BATCH_LOAD_MAX_FAILURES_IMPORTANCE =
+          ConfigDef.Importance.LOW;
+  private static final String BATCH_LOAD_MAX_FAILURES_DOC =
+          "Max number of active BigQuery load jobs which can fail";
+
   public static final String GCS_BUCKET_NAME_CONFIG =                     "gcsBucketName";
   private static final ConfigDef.Type GCS_BUCKET_NAME_TYPE =              ConfigDef.Type.STRING;
   private static final Object GCS_BUCKET_NAME_DEFAULT =                   "";
@@ -111,6 +119,20 @@ public class BigQuerySinkConfig extends AbstractConfig {
   private static final ConfigDef.Importance PROJECT_IMPORTANCE =  ConfigDef.Importance.HIGH;
   private static final String PROJECT_DOC =
       "The BigQuery project to write to";
+
+  public static final String GCS_PROJECT_CONFIG =                     "gcsProject";
+  private static final ConfigDef.Type GCS_PROJECT_TYPE =              ConfigDef.Type.STRING;
+  public static final String GCS_PROJECT_DEFAULT =                    null;
+  private static final ConfigDef.Importance GCS_PROJECT_IMPORTANCE =  ConfigDef.Importance.LOW;
+  private static final String GCS_PROJECT_DOC =
+          "The BigQuery project where GCS buckets are created.";
+
+  public static final String BQ_LOAD_JOB_PROJECT_CONFIG =                "bqLoadJobProject";
+  private static final ConfigDef.Type BQ_LOAD_JOB_PROJECT_TYPE =             ConfigDef.Type.STRING;
+  public static final String BQ_LOAD_JOB_PROJECT_DEFAULT =                   null;
+  private static final ConfigDef.Importance BQ_LOAD_JOB_PROJECT_IMPORTANCE = ConfigDef.Importance.LOW;
+  private static final String BQ_LOAD_JOB_PROJECT_DOC =
+          "The BigQuery project where BQ load jobs are to be submitted.";
 
   public static final String DEFAULT_DATASET_CONFIG =             "defaultDataset";
   private static final ConfigDef.Type DEFAULT_DATASET_TYPE =       ConfigDef.Type.STRING;
@@ -574,6 +596,12 @@ public class BigQuerySinkConfig extends AbstractConfig {
             BATCH_LOAD_INTERVAL_SEC_IMPORTANCE,
             BATCH_LOAD_INTERVAL_SEC_DOC
         ).define(
+            BATCH_LOAD_MAX_FAILURES_CONFIG,
+            BATCH_LOAD_MAX_FAILURES_TYPE,
+            BATCH_LOAD_MAX_FAILURES_DEFAULT,
+            BATCH_LOAD_MAX_FAILURES_IMPORTANCE,
+            BATCH_LOAD_MAX_FAILURES_DOC
+        ).define(
             GCS_BUCKET_NAME_CONFIG,
             GCS_BUCKET_NAME_TYPE,
             GCS_BUCKET_NAME_DEFAULT,
@@ -590,6 +618,18 @@ public class BigQuerySinkConfig extends AbstractConfig {
             PROJECT_TYPE,
             PROJECT_IMPORTANCE,
             PROJECT_DOC
+        ).define(
+            GCS_PROJECT_CONFIG,
+            GCS_PROJECT_TYPE,
+            GCS_PROJECT_DEFAULT,
+            GCS_PROJECT_IMPORTANCE,
+            GCS_PROJECT_DOC
+        ).define(
+            BQ_LOAD_JOB_PROJECT_CONFIG,
+            BQ_LOAD_JOB_PROJECT_TYPE,
+            BQ_LOAD_JOB_PROJECT_DEFAULT,
+            BQ_LOAD_JOB_PROJECT_IMPORTANCE,
+            BQ_LOAD_JOB_PROJECT_DOC
         ).define(
             DEFAULT_DATASET_CONFIG,
             DEFAULT_DATASET_TYPE,
